@@ -173,7 +173,7 @@ end
 -- ============================================================
 local FontOptions = {
     ["Gotham"]       = {normal = Enum.Font.GothamSemibold, bold = Enum.Font.GothamBold},
-    ["Ubuntu"]       = {normal = Enum.Font.Ubuntu,         bold = Enum.Font.UbuntuBold},
+    ["Ubuntu"]       = {normal = Enum.Font.Ubuntu,         bold = Enum.Font.Ubuntu},
     ["SourceSans"]   = {normal = Enum.Font.SourceSans,     bold = Enum.Font.SourceSansBold},
     ["Oswald"]       = {normal = Enum.Font.Oswald,         bold = Enum.Font.Oswald},
     ["Roboto"]       = {normal = Enum.Font.RobotoMono,     bold = Enum.Font.RobotoMono},
