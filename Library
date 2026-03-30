@@ -317,8 +317,15 @@ function Nova:MakeWindow(options)
     SettingsBtn.BackgroundTransparency = 1
     SettingsBtn.Image = GetIcon("lucide-settings")
     SettingsBtn.ImageColor3 = Color3.fromRGB(150, 150, 150)
+    
+    local isSettingsActive = false
     SettingsBtn.MouseEnter:Connect(function() TweenService:Create(SettingsBtn, TweenInfo.new(0.2), {ImageColor3 = ThemeColor, Rotation = 45}):Play() end)
-    SettingsBtn.MouseLeave:Connect(function() TweenService:Create(SettingsBtn, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(150, 150, 150), Rotation = 0}):Play() end)
+    SettingsBtn.MouseLeave:Connect(function() 
+        TweenService:Create(SettingsBtn, TweenInfo.new(0.2), {ImageColor3 = isSettingsActive and ThemeColor or Color3.fromRGB(150, 150, 150), Rotation = 0}):Play() 
+    end)
+    table.insert(ThemeUpdateFunctions, function()
+        if isSettingsActive then SettingsBtn.ImageColor3 = ThemeColor end
+    end)
 
     local ContentContainer = Instance.new("Frame", MainFrame)
     ContentContainer.Size = UDim2.new(1, -150, 1, -35)
@@ -377,6 +384,9 @@ function Nova:MakeWindow(options)
 
         local function ActivateTab()
             CurrentActiveTab = TabBtn
+            isSettingsActive = (tabOpts.Name == "Settings")
+            TweenService:Create(SettingsBtn, TweenInfo.new(0.3), {ImageColor3 = isSettingsActive and ThemeColor or Color3.fromRGB(150, 150, 150)}):Play()
+
             for _, t in pairs(Tabs) do
                 TweenService:Create(t.Btn, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(18, 18, 18)}):Play()
                 TweenService:Create(t.Text, TweenInfo.new(0.3), {TextColor3 = Color3.fromRGB(150, 150, 150)}):Play()
@@ -390,7 +400,14 @@ function Nova:MakeWindow(options)
         end
 
         TabBtn.MouseButton1Click:Connect(ActivateTab)
-        if #Tabs == 1 and not tabOpts.Hidden then ActivateTab() end
+        
+        local hasVisibleTab = false
+        for i = 1, #Tabs - 1 do
+            if Tabs[i].Btn.Visible then hasVisibleTab = true break end
+        end
+        if not tabOpts.Hidden and not hasVisibleTab then 
+            ActivateTab() 
+        end
 
         -- Link the Settings action
         if tabOpts.Name == "Settings" then SettingsTabAction = ActivateTab end
