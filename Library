@@ -1,4 +1,4 @@
--- Nova UI Library V4.1 (The Zenith Edition - Bug Fixes)
+-- Nova UI Library V4.1 (The Zenith Edition - Bug Fixes & Enhancements)
 local Nova = {}
 
 local TweenService = game:GetService("TweenService")
@@ -14,6 +14,29 @@ local makefolder = makefolder or function() end
 local isfile = isfile or function() return false end
 local readfile = readfile or function() return "{}" end
 local writefile = writefile or function() end
+
+-- Lucide Icon Fetcher
+local LucideIcons = {}
+task.spawn(function()
+    pcall(function()
+        local req = game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/src/Icons.json")
+        if req then LucideIcons = HttpService:JSONDecode(req) end
+    end)
+end)
+
+local function GetIcon(icon)
+    if type(icon) == "string" then
+        if icon:match("^lucide%-") then
+            local clean = icon:gsub("^lucide%-", "")
+            if LucideIcons[clean] then return "rbxassetid://" .. tostring(LucideIcons[clean]) end
+        elseif icon:match("^rbxassetid://") then 
+            return icon
+        elseif tonumber(icon) then 
+            return "rbxassetid://" .. icon 
+        end
+    end
+    return icon or "rbxassetid://4483362458"
+end
 
 local function GetSafeParent()
     if gethui then return gethui() end
@@ -139,7 +162,19 @@ function Nova:MakeWindow(options)
     MainFrame.ClipsDescendants = true
     MainFrame.Parent = ScreenGui
     Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
-    Instance.new("UIStroke", MainFrame).Color = Color3.fromRGB(45, 45, 45)
+    
+    local MainFrameStroke = Instance.new("UIStroke", MainFrame)
+    MainFrameStroke.Color = Color3.fromRGB(45, 45, 45)
+
+    local BackgroundImage = Instance.new("ImageLabel", MainFrame)
+    BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
+    BackgroundImage.BackgroundTransparency = 1
+    BackgroundImage.Image = "rbxassetid://7188849764"
+    BackgroundImage.ImageTransparency = 0.95
+    BackgroundImage.ScaleType = Enum.ScaleType.Tile
+    BackgroundImage.TileSize = UDim2.new(0, 250, 0, 250)
+    BackgroundImage.ZIndex = 0
+    BackgroundImage.Visible = false
 
     local uiScale = Instance.new("UIScale", MainFrame)
     uiScale.Scale = 0.8
@@ -152,10 +187,13 @@ function Nova:MakeWindow(options)
     Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 8)
     
     local TopBarHider = Instance.new("Frame", TopBar)
-    TopBarHider.Size = UDim2.new(1, 0, 0, 5)
-    TopBarHider.Position = UDim2.new(0, 0, 1, -5)
-    TopBarHider.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    TopBarHider.Size = UDim2.new(1, 0, 0, 2)
+    TopBarHider.Position = UDim2.new(0, 0, 1, -2)
+    TopBarHider.BackgroundColor3 = ThemeColor
     TopBarHider.BorderSizePixel = 0
+    table.insert(ThemeUpdateFunctions, function()
+        TweenService:Create(TopBarHider, TweenInfo.new(0.3), {BackgroundColor3 = ThemeColor}):Play()
+    end)
 
     local TitleLabel = Instance.new("TextLabel", TopBar)
     TitleLabel.Size = UDim2.new(1, -100, 1, 0)
@@ -229,7 +267,7 @@ function Nova:MakeWindow(options)
     local SidebarLayout = Instance.new("UIListLayout", Sidebar)
     SidebarLayout.Padding = UDim.new(0, 5)
 
-    -- USER PROFILE & SETTINGS GEAR (Fixed Name Overflow)
+    -- USER PROFILE & SETTINGS GEAR
     local ProfileFrame = Instance.new("Frame", SidebarContainer)
     ProfileFrame.Size = UDim2.new(1, 0, 0, 50)
     ProfileFrame.Position = UDim2.new(0, 0, 1, -50)
@@ -252,7 +290,7 @@ function Nova:MakeWindow(options)
     end)
 
     local Username = Instance.new("TextLabel", ProfileFrame)
-    Username.Size = UDim2.new(1, -80, 0, 15) -- Leaves space for the gear icon
+    Username.Size = UDim2.new(1, -80, 0, 15)
     Username.Position = UDim2.new(0, 48, 0.5, -12)
     Username.BackgroundTransparency = 1
     Username.Text = LocalPlayer.DisplayName
@@ -260,7 +298,7 @@ function Nova:MakeWindow(options)
     Username.Font = Enum.Font.GothamBold
     Username.TextSize = 12
     Username.TextXAlignment = Enum.TextXAlignment.Left
-    Username.TextTruncate = Enum.TextTruncate.AtEnd -- [FIXED]: Adds "..." to long names
+    Username.TextTruncate = Enum.TextTruncate.AtEnd
 
     local SubName = Instance.new("TextLabel", ProfileFrame)
     SubName.Size = UDim2.new(1, -80, 0, 15)
@@ -271,13 +309,13 @@ function Nova:MakeWindow(options)
     SubName.Font = Enum.Font.Gotham
     SubName.TextSize = 10
     SubName.TextXAlignment = Enum.TextXAlignment.Left
-    SubName.TextTruncate = Enum.TextTruncate.AtEnd -- [FIXED]: Adds "..." to long usernames
+    SubName.TextTruncate = Enum.TextTruncate.AtEnd
 
     local SettingsBtn = Instance.new("ImageButton", ProfileFrame)
     SettingsBtn.Size = UDim2.new(0, 18, 0, 18)
     SettingsBtn.Position = UDim2.new(1, -28, 0.5, -9)
     SettingsBtn.BackgroundTransparency = 1
-    SettingsBtn.Image = "rbxassetid://7734068321" -- Gear icon
+    SettingsBtn.Image = GetIcon("lucide-settings")
     SettingsBtn.ImageColor3 = Color3.fromRGB(150, 150, 150)
     SettingsBtn.MouseEnter:Connect(function() TweenService:Create(SettingsBtn, TweenInfo.new(0.2), {ImageColor3 = ThemeColor, Rotation = 45}):Play() end)
     SettingsBtn.MouseLeave:Connect(function() TweenService:Create(SettingsBtn, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(150, 150, 150), Rotation = 0}):Play() end)
@@ -292,18 +330,28 @@ function Nova:MakeWindow(options)
     local CurrentActiveTab = nil
     local SettingsTabAction = nil
 
+    table.insert(ThemeUpdateFunctions, function()
+        for _, t in pairs(Tabs) do
+            if CurrentActiveTab == t.Btn then
+                TweenService:Create(t.Icon, TweenInfo.new(0.3), {ImageColor3 = ThemeColor}):Play()
+            end
+        end
+    end)
+
     function Window:MakeTab(tabOpts)
         local TabBtn = Instance.new("TextButton", Sidebar)
         TabBtn.Size = UDim2.new(1, 0, 0, 32)
         TabBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
         TabBtn.Text = ""
         Instance.new("UICorner", TabBtn).CornerRadius = UDim.new(0, 6)
+        
+        if tabOpts.Hidden then TabBtn.Visible = false end
 
         local IconLabel = Instance.new("ImageLabel", TabBtn)
         IconLabel.Size = UDim2.new(0, 16, 0, 16)
         IconLabel.Position = UDim2.new(0, 10, 0.5, -8)
         IconLabel.BackgroundTransparency = 1
-        IconLabel.Image = tabOpts.Icon or "rbxassetid://4483362458"
+        IconLabel.Image = GetIcon(tabOpts.Icon)
         IconLabel.ImageColor3 = Color3.fromRGB(150, 150, 150)
         
         local TextLbl = Instance.new("TextLabel", TabBtn)
@@ -342,9 +390,9 @@ function Nova:MakeWindow(options)
         end
 
         TabBtn.MouseButton1Click:Connect(ActivateTab)
-        if #Tabs == 1 then ActivateTab() end
+        if #Tabs == 1 and not tabOpts.Hidden then ActivateTab() end
 
-        -- [FIXED]: Link the Settings action correctly
+        -- Link the Settings action
         if tabOpts.Name == "Settings" then SettingsTabAction = ActivateTab end
 
         local Elements = {}
@@ -355,7 +403,7 @@ function Nova:MakeWindow(options)
             Ico.Size = UDim2.new(0, 16, 0, 16)
             Ico.Position = UDim2.new(0, 10, 0.5, -8)
             Ico.BackgroundTransparency = 1
-            Ico.Image = iconId
+            Ico.Image = GetIcon(iconId)
             Ico.ImageColor3 = Color3.fromRGB(220, 220, 220)
             return 25
         end
@@ -433,8 +481,8 @@ function Nova:MakeWindow(options)
             Circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             Instance.new("UICorner", Circle).CornerRadius = UDim.new(1, 0)
 
-            Tog.MouseButton1Click:Connect(function()
-                state = not state
+            local function UpdateState(newState)
+                state = newState
                 ConfigData[opts.Name] = state
                 SaveConfig()
                 local targetPos = state and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
@@ -442,15 +490,56 @@ function Nova:MakeWindow(options)
                 TweenService:Create(Circle, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = targetPos}):Play()
                 TweenService:Create(IndicatorBg, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
                 if opts.Callback then opts.Callback(state) end
-            end)
+            end
+
+            Tog.MouseButton1Click:Connect(function() UpdateState(not state) end)
 
             table.insert(ThemeUpdateFunctions, function()
                 if state then TweenService:Create(IndicatorBg, TweenInfo.new(0.3), {BackgroundColor3 = ThemeColor}):Play() end
             end)
+
+            if opts.Keybind then
+                local currentKey = ConfigData[opts.Name.."_Keybind"] and Enum.KeyCode[ConfigData[opts.Name.."_Keybind"]] or opts.Keybind
+                local binding = false
+                
+                local BindBtn = Instance.new("TextButton", Tog)
+                BindBtn.Size = UDim2.new(0, 40, 0, 20)
+                BindBtn.Position = UDim2.new(1, -95, 0.5, -10)
+                BindBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+                BindBtn.Text = currentKey.Name
+                BindBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+                BindBtn.Font = Enum.Font.GothamMedium
+                BindBtn.TextSize = 11
+                Instance.new("UICorner", BindBtn).CornerRadius = UDim.new(0, 4)
+                Instance.new("UIStroke", BindBtn).Color = Color3.fromRGB(55, 55, 55)
+
+                table.insert(ThemeUpdateFunctions, function()
+                    if binding then TweenService:Create(BindBtn, TweenInfo.new(0.3), {BackgroundColor3 = ThemeColor}):Play() end
+                end)
+
+                BindBtn.MouseButton1Click:Connect(function()
+                    binding = true
+                    BindBtn.Text = "..."
+                    TweenService:Create(BindBtn, TweenInfo.new(0.2), {BackgroundColor3 = ThemeColor, TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+                end)
+
+                UserInputService.InputBegan:Connect(function(input)
+                    if binding and input.UserInputType == Enum.UserInputType.Keyboard then
+                        currentKey = input.KeyCode
+                        BindBtn.Text = currentKey.Name
+                        TweenService:Create(BindBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(35, 35, 35), TextColor3 = Color3.fromRGB(200, 200, 200)}):Play()
+                        binding = false
+                        ConfigData[opts.Name.."_Keybind"] = currentKey.Name
+                        SaveConfig()
+                    elseif not binding and input.KeyCode == currentKey then
+                        UpdateState(not state)
+                    end
+                end)
+            end
+
             if state and opts.Callback then opts.Callback(state) end
         end
 
-        -- [RESTORED]: SLIDERS
         function Elements:AddSlider(opts)
             local min, max = opts.Min or 0, opts.Max or 100
             local default = ConfigData[opts.Name] ~= nil and ConfigData[opts.Name] or (opts.Default or min)
@@ -489,7 +578,7 @@ function Nova:MakeWindow(options)
             Instance.new("UICorner", Track).CornerRadius = UDim.new(1, 0)
 
             local Fill = Instance.new("Frame", Track)
-            Fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+            Fill.Size = UDim2.new(math.clamp((default - min) / (max - min), 0, 1), 0, 1, 0)
             Fill.BackgroundColor3 = ThemeColor
             Instance.new("UICorner", Fill).CornerRadius = UDim.new(1, 0)
 
@@ -524,7 +613,6 @@ function Nova:MakeWindow(options)
             if opts.Callback then opts.Callback(default) end
         end
 
-        -- [RESTORED]: DROPDOWNS
         function Elements:AddDropdown(opts)
             local default = ConfigData[opts.Name] ~= nil and ConfigData[opts.Name] or (opts.Default or opts.Options[1] or "None")
             
@@ -582,7 +670,6 @@ function Nova:MakeWindow(options)
             if opts.Callback then opts.Callback(default) end
         end
 
-        -- [RESTORED]: KEYBINDS
         function Elements:AddKeybind(opts)
             local currentKey = opts.Default or Enum.KeyCode.E
             local binding = false
@@ -751,7 +838,6 @@ function Nova:MakeWindow(options)
         return Elements
     end
 
-    --[FIXED]: Settings Gear Hookup
     SettingsBtn.MouseButton1Click:Connect(function()
         if SettingsTabAction then
             SettingsTabAction()
@@ -761,12 +847,51 @@ function Nova:MakeWindow(options)
     end)
 
     if options.ShowSettings then
-        local SettingsTab = Window:MakeTab({Name = "Settings", Icon = "rbxassetid://7734068321"})
-        SettingsTab:AddLabel({Text = "Customization"})
+        local SettingsTab = Window:MakeTab({Name = "Settings", Icon = "rbxassetid://7734068321", Hidden = true})
+        SettingsTab:AddLabel({Text = "Hub Customization"})
+
         SettingsTab:AddColorPicker({
-            Name = "Hub Theme Color",
+            Name = "Theme Color",
             Default = ThemeColor,
             Callback = function(color) UpdateTheme(color) end
+        })
+        
+        SettingsTab:AddSlider({
+            Name = "Hub Transparency",
+            Min = 0, Max = 1, Default = 0, Increment = 0.05,
+            Callback = function(val)
+                MainFrame.BackgroundTransparency = val
+                SidebarContainer.BackgroundTransparency = val
+                TopBar.BackgroundTransparency = val
+            end
+        })
+
+        SettingsTab:AddDropdown({
+            Name = "UI Font",
+            Options = {"Gotham", "Code", "Jura", "Roboto", "SciFi", "Arcade"},
+            Default = "Gotham",
+            Callback = function(fontName)
+                local f = Enum.Font.Gotham
+                if fontName == "Code" then f = Enum.Font.Code
+                elseif fontName == "Jura" then f = Enum.Font.Jura
+                elseif fontName == "Roboto" then f = Enum.Font.Roboto
+                elseif fontName == "SciFi" then f = Enum.Font.SciFi 
+                elseif fontName == "Arcade" then f = Enum.Font.Arcade end
+                
+                for _, obj in ipairs(MainFrame:GetDescendants()) do
+                    if obj:IsA("TextLabel") or obj:IsA("TextBox") or obj:IsA("TextButton") then
+                        pcall(function() obj.Font = f end)
+                    end
+                end
+            end
+        })
+
+        SettingsTab:AddToggle({
+            Name = "Custom Background Image",
+            Default = false,
+            Callback = function(state)
+                BackgroundImage.Visible = state
+            end
         })
     end
 
