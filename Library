@@ -442,8 +442,7 @@ function Nova:MakeWindow(options)
     Sidebar.Position = UDim2.new(0, 5, 0, 8)
     Sidebar.BackgroundTransparency = 1
     Sidebar.ScrollBarThickness = 0
-    Sidebar.CanvasSize = UDim2.new(0, 0, 0, 0)
-    Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    Sidebar.CanvasSize = UDim2.new(0, 0, 2, 0)
     local SidebarLayout = Instance.new("UIListLayout", Sidebar)
     SidebarLayout.Padding = UDim.new(0, 4)
 
@@ -467,8 +466,10 @@ function Nova:MakeWindow(options)
     Avatar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     Instance.new("UICorner", Avatar).CornerRadius = UDim.new(1, 0)
     task.spawn(function()
-        local content, isReady = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
-        if isReady then Avatar.Image = content end
+        local ok, content, isReady = pcall(function()
+            return Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+        end)
+        if ok and isReady then Avatar.Image = content end
     end)
 
     local Username = Instance.new("TextLabel", ProfileFrame)
@@ -571,8 +572,7 @@ function Nova:MakeWindow(options)
         TabContent.ScrollBarThickness = 2
         TabContent.ScrollBarImageColor3 = Theme.Accent
         TabContent.Visible = false
-        TabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
-        TabContent.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        TabContent.CanvasSize = UDim2.new(0, 0, 2, 0)
         local ContentLayout = Instance.new("UIListLayout", TabContent)
         ContentLayout.Padding = UDim.new(0, 8)
         local ContentPadding = Instance.new("UIPadding", TabContent)
@@ -668,7 +668,6 @@ function Nova:MakeWindow(options)
 
         function Elements:AddButton(opts)
             local Btn = MakeBase(38)
-            Btn.AutoButtonColor = false
 
             local offset = AddIconTo(Btn, opts.Icon)
             local Title = Instance.new("TextLabel", Btn)
@@ -731,7 +730,7 @@ function Nova:MakeWindow(options)
             KeyLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
             KeyLabel.Font = Theme.Font
             KeyLabel.TextSize = 10
-KeyLabel.AutomaticSize = Enum.AutomaticSize.X
+            KeyLabel.Size = UDim2.new(0, 50, 0, 16)
             Instance.new("UICorner", KeyLabel).CornerRadius = UDim.new(0, 3)
             local KPad = Instance.new("UIPadding", KeyLabel)
             KPad.PaddingLeft  = UDim.new(0, 4)
