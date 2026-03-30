@@ -1,4 +1,4 @@
--- Nova UI Library V4 (The Zenith Edition)
+-- Nova UI Library V4.1 (The Zenith Edition - Bug Fixes)
 local Nova = {}
 
 local TweenService = game:GetService("TweenService")
@@ -58,6 +58,73 @@ local function LoadConfig()
     end
 end
 
+-- Global Notification
+local NotifContainer = Instance.new("Frame")
+NotifContainer.Name = "NotifContainer"
+NotifContainer.Size = UDim2.new(0, 250, 1, -20)
+NotifContainer.Position = UDim2.new(1, -270, 0, 20)
+NotifContainer.BackgroundTransparency = 1
+NotifContainer.Parent = ScreenGui
+
+local NotifLayout = Instance.new("UIListLayout")
+NotifLayout.SortOrder = Enum.SortOrder.LayoutOrder
+NotifLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+NotifLayout.Padding = UDim.new(0, 10)
+NotifLayout.Parent = NotifContainer
+
+function Nova:MakeNotification(options)
+    local title = options.Name or "Notification"
+    local content = options.Content or ""
+    local time = options.Time or 5
+
+    local notifFrame = Instance.new("Frame")
+    notifFrame.Size = UDim2.new(1, 0, 0, 60)
+    notifFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    notifFrame.BackgroundTransparency = 1
+    notifFrame.Position = UDim2.new(1, 50, 0, 0)
+    Instance.new("UICorner", notifFrame).CornerRadius = UDim.new(0, 6)
+    Instance.new("UIStroke", notifFrame).Color = Color3.fromRGB(60, 60, 60)
+    notifFrame.Parent = NotifContainer
+
+    local titleLbl = Instance.new("TextLabel", notifFrame)
+    titleLbl.Size = UDim2.new(1, -20, 0, 20)
+    titleLbl.Position = UDim2.new(0, 10, 0, 5)
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.Text = title
+    titleLbl.TextColor3 = ThemeColor
+    titleLbl.Font = Enum.Font.GothamBold
+    titleLbl.TextSize = 14
+    titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+    titleLbl.TextTransparency = 1
+    table.insert(ThemeUpdateFunctions, function() TweenService:Create(titleLbl, TweenInfo.new(0.3), {TextColor3 = ThemeColor}):Play() end)
+
+    local descLbl = Instance.new("TextLabel", notifFrame)
+    descLbl.Size = UDim2.new(1, -20, 0, 30)
+    descLbl.Position = UDim2.new(0, 10, 0, 25)
+    descLbl.BackgroundTransparency = 1
+    descLbl.Text = content
+    descLbl.TextColor3 = Color3.fromRGB(200, 200, 200)
+    descLbl.Font = Enum.Font.Gotham
+    descLbl.TextSize = 12
+    descLbl.TextXAlignment = Enum.TextXAlignment.Left
+    descLbl.TextWrapped = true
+    descLbl.TextTransparency = 1
+
+    TweenService:Create(notifFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Position = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 0}):Play()
+    TweenService:Create(titleLbl, TweenInfo.new(0.4), {TextTransparency = 0}):Play()
+    TweenService:Create(descLbl, TweenInfo.new(0.4), {TextTransparency = 0}):Play()
+
+    task.spawn(function()
+        task.wait(time)
+        TweenService:Create(titleLbl, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
+        TweenService:Create(descLbl, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
+        local fadeOut = TweenService:Create(notifFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Position = UDim2.new(1, 50, 0, 0), BackgroundTransparency = 1})
+        fadeOut:Play()
+        fadeOut.Completed:Wait()
+        notifFrame:Destroy()
+    end)
+end
+
 -- Main UI Function
 function Nova:MakeWindow(options)
     local WindowTitle = options.Title or "Nova UI Hub"
@@ -66,7 +133,7 @@ function Nova:MakeWindow(options)
     LoadConfig()
     
     local MainFrame = Instance.new("Frame")
-    MainFrame.Size = UDim2.new(0, 600, 0, 400) -- Made slightly larger for advanced UI
+    MainFrame.Size = UDim2.new(0, 600, 0, 400)
     MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
     MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     MainFrame.ClipsDescendants = true
@@ -78,7 +145,6 @@ function Nova:MakeWindow(options)
     uiScale.Scale = 0.8
     TweenService:Create(uiScale, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1}):Play()
 
-    -- TopBar & MacOS Controls
     local TopBar = Instance.new("Frame", MainFrame)
     TopBar.Size = UDim2.new(1, 0, 0, 35)
     TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
@@ -156,14 +222,14 @@ function Nova:MakeWindow(options)
     SidebarContainer.BorderSizePixel = 0
 
     local Sidebar = Instance.new("ScrollingFrame", SidebarContainer)
-    Sidebar.Size = UDim2.new(1, -10, 1, -60) -- Leaves room for Profile
+    Sidebar.Size = UDim2.new(1, -10, 1, -60)
     Sidebar.Position = UDim2.new(0, 5, 0, 5)
     Sidebar.BackgroundTransparency = 1
     Sidebar.ScrollBarThickness = 0
     local SidebarLayout = Instance.new("UIListLayout", Sidebar)
     SidebarLayout.Padding = UDim.new(0, 5)
 
-    -- [V4 FEATURE]: USER PROFILE & SETTINGS GEAR
+    -- USER PROFILE & SETTINGS GEAR (Fixed Name Overflow)
     local ProfileFrame = Instance.new("Frame", SidebarContainer)
     ProfileFrame.Size = UDim2.new(1, 0, 0, 50)
     ProfileFrame.Position = UDim2.new(0, 0, 1, -50)
@@ -180,14 +246,13 @@ function Nova:MakeWindow(options)
     Avatar.Position = UDim2.new(0, 10, 0.5, -15)
     Avatar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     Instance.new("UICorner", Avatar).CornerRadius = UDim.new(1, 0)
-    -- Fetch Avatar
     task.spawn(function()
         local content, isReady = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
         if isReady then Avatar.Image = content end
     end)
 
     local Username = Instance.new("TextLabel", ProfileFrame)
-    Username.Size = UDim2.new(1, -75, 0, 15)
+    Username.Size = UDim2.new(1, -80, 0, 15) -- Leaves space for the gear icon
     Username.Position = UDim2.new(0, 48, 0.5, -12)
     Username.BackgroundTransparency = 1
     Username.Text = LocalPlayer.DisplayName
@@ -195,9 +260,10 @@ function Nova:MakeWindow(options)
     Username.Font = Enum.Font.GothamBold
     Username.TextSize = 12
     Username.TextXAlignment = Enum.TextXAlignment.Left
+    Username.TextTruncate = Enum.TextTruncate.AtEnd -- [FIXED]: Adds "..." to long names
 
     local SubName = Instance.new("TextLabel", ProfileFrame)
-    SubName.Size = UDim2.new(1, -75, 0, 15)
+    SubName.Size = UDim2.new(1, -80, 0, 15)
     SubName.Position = UDim2.new(0, 48, 0.5, 2)
     SubName.BackgroundTransparency = 1
     SubName.Text = "@" .. LocalPlayer.Name
@@ -205,14 +271,14 @@ function Nova:MakeWindow(options)
     SubName.Font = Enum.Font.Gotham
     SubName.TextSize = 10
     SubName.TextXAlignment = Enum.TextXAlignment.Left
+    SubName.TextTruncate = Enum.TextTruncate.AtEnd -- [FIXED]: Adds "..." to long usernames
 
     local SettingsBtn = Instance.new("ImageButton", ProfileFrame)
     SettingsBtn.Size = UDim2.new(0, 18, 0, 18)
-    SettingsBtn.Position = UDim2.new(1, -25, 0.5, -9)
+    SettingsBtn.Position = UDim2.new(1, -28, 0.5, -9)
     SettingsBtn.BackgroundTransparency = 1
     SettingsBtn.Image = "rbxassetid://7734068321" -- Gear icon
     SettingsBtn.ImageColor3 = Color3.fromRGB(150, 150, 150)
-    
     SettingsBtn.MouseEnter:Connect(function() TweenService:Create(SettingsBtn, TweenInfo.new(0.2), {ImageColor3 = ThemeColor, Rotation = 45}):Play() end)
     SettingsBtn.MouseLeave:Connect(function() TweenService:Create(SettingsBtn, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(150, 150, 150), Rotation = 0}):Play() end)
 
@@ -278,12 +344,11 @@ function Nova:MakeWindow(options)
         TabBtn.MouseButton1Click:Connect(ActivateTab)
         if #Tabs == 1 then ActivateTab() end
 
-        -- Link Settings Gear to this tab if it's named "Settings"
+        -- [FIXED]: Link the Settings action correctly
         if tabOpts.Name == "Settings" then SettingsTabAction = ActivateTab end
 
         local Elements = {}
 
-        -- Universal Icon function for elements
         local function AddIcon(parent, iconId)
             if not iconId then return 0 end
             local Ico = Instance.new("ImageLabel", parent)
@@ -293,6 +358,17 @@ function Nova:MakeWindow(options)
             Ico.Image = iconId
             Ico.ImageColor3 = Color3.fromRGB(220, 220, 220)
             return 25
+        end
+
+        function Elements:AddLabel(opts)
+            local Lbl = Instance.new("TextLabel", TabContent)
+            Lbl.Size = UDim2.new(1, -10, 0, 25)
+            Lbl.BackgroundTransparency = 1
+            Lbl.Text = opts.Text or "Label"
+            Lbl.TextColor3 = Color3.fromRGB(200, 200, 200)
+            Lbl.Font = Enum.Font.GothamMedium
+            Lbl.TextSize = 13
+            Lbl.TextXAlignment = Enum.TextXAlignment.Left
         end
 
         function Elements:AddButton(opts)
@@ -374,7 +450,187 @@ function Nova:MakeWindow(options)
             if state and opts.Callback then opts.Callback(state) end
         end
 
-        --[V4 FEATURE]: ADVANCED COLOR PICKER
+        -- [RESTORED]: SLIDERS
+        function Elements:AddSlider(opts)
+            local min, max = opts.Min or 0, opts.Max or 100
+            local default = ConfigData[opts.Name] ~= nil and ConfigData[opts.Name] or (opts.Default or min)
+            local inc = opts.Increment or 1
+
+            local SliderBg = Instance.new("Frame", TabContent)
+            SliderBg.Size = UDim2.new(1, -10, 0, 50)
+            SliderBg.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            Instance.new("UICorner", SliderBg).CornerRadius = UDim.new(0, 6)
+            Instance.new("UIStroke", SliderBg).Color = Color3.fromRGB(45, 45, 45)
+
+            local Label = Instance.new("TextLabel", SliderBg)
+            Label.Size = UDim2.new(1, -20, 0, 20)
+            Label.Position = UDim2.new(0, 15, 0, 6)
+            Label.BackgroundTransparency = 1
+            Label.Text = opts.Name or "Slider"
+            Label.TextColor3 = Color3.fromRGB(220, 220, 220)
+            Label.Font = Enum.Font.GothamSemibold
+            Label.TextSize = 13
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+
+            local ValLabel = Instance.new("TextLabel", SliderBg)
+            ValLabel.Size = UDim2.new(0, 50, 0, 20)
+            ValLabel.Position = UDim2.new(1, -65, 0, 6)
+            ValLabel.BackgroundTransparency = 1
+            ValLabel.Text = tostring(default)
+            ValLabel.TextColor3 = ThemeColor
+            ValLabel.Font = Enum.Font.GothamBold
+            ValLabel.TextSize = 13
+            ValLabel.TextXAlignment = Enum.TextXAlignment.Right
+
+            local Track = Instance.new("Frame", SliderBg)
+            Track.Size = UDim2.new(1, -30, 0, 4)
+            Track.Position = UDim2.new(0, 15, 0, 34)
+            Track.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            Instance.new("UICorner", Track).CornerRadius = UDim.new(1, 0)
+
+            local Fill = Instance.new("Frame", Track)
+            Fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+            Fill.BackgroundColor3 = ThemeColor
+            Instance.new("UICorner", Fill).CornerRadius = UDim.new(1, 0)
+
+            table.insert(ThemeUpdateFunctions, function()
+                TweenService:Create(Fill, TweenInfo.new(0.3), {BackgroundColor3 = ThemeColor}):Play()
+                TweenService:Create(ValLabel, TweenInfo.new(0.3), {TextColor3 = ThemeColor}):Play()
+            end)
+
+            local dragging = false
+            local function updateSlider(input)
+                local pos = math.clamp((input.Position.X - Track.AbsolutePosition.X) / Track.AbsoluteSize.X, 0, 1)
+                local val = min + ((max - min) * pos)
+                val = math.floor(val / inc + 0.5) * inc
+                
+                TweenService:Create(Fill, TweenInfo.new(0.15), {Size = UDim2.new((val - min) / (max - min), 0, 1, 0)}):Play()
+                ValLabel.Text = tostring(val)
+                ConfigData[opts.Name] = val
+                SaveConfig()
+                if opts.Callback then opts.Callback(val) end
+            end
+
+            Track.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true; updateSlider(input) end
+            end)
+            UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+            end)
+            UserInputService.InputChanged:Connect(function(input)
+                if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then updateSlider(input) end
+            end)
+
+            if opts.Callback then opts.Callback(default) end
+        end
+
+        -- [RESTORED]: DROPDOWNS
+        function Elements:AddDropdown(opts)
+            local default = ConfigData[opts.Name] ~= nil and ConfigData[opts.Name] or (opts.Default or opts.Options[1] or "None")
+            
+            local DropBg = Instance.new("Frame", TabContent)
+            DropBg.Size = UDim2.new(1, -10, 0, 36)
+            DropBg.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            DropBg.ClipsDescendants = true
+            Instance.new("UICorner", DropBg).CornerRadius = UDim.new(0, 6)
+            Instance.new("UIStroke", DropBg).Color = Color3.fromRGB(45, 45, 45)
+
+            local DropBtn = Instance.new("TextButton", DropBg)
+            DropBtn.Size = UDim2.new(1, 0, 0, 36)
+            DropBtn.BackgroundTransparency = 1
+            DropBtn.Text = "   " .. (opts.Name or "Dropdown") .. " : " .. default
+            DropBtn.TextColor3 = Color3.fromRGB(220, 220, 220)
+            DropBtn.Font = Enum.Font.GothamSemibold
+            DropBtn.TextSize = 13
+            DropBtn.TextXAlignment = Enum.TextXAlignment.Left
+
+            local DropLayout = Instance.new("UIListLayout", DropBg)
+            DropLayout.Padding = UDim.new(0, 2)
+            DropLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+            local OffsetFrame = Instance.new("Frame", DropBg)
+            OffsetFrame.Size = UDim2.new(1, 0, 0, 34)
+            OffsetFrame.BackgroundTransparency = 1
+            OffsetFrame.LayoutOrder = -1
+
+            local expanded = false
+            DropBtn.MouseButton1Click:Connect(function()
+                expanded = not expanded
+                local targetSize = expanded and UDim2.new(1, -10, 0, 36 + (#opts.Options * 25)) or UDim2.new(1, -10, 0, 36)
+                TweenService:Create(DropBg, TweenInfo.new(0.2), {Size = targetSize}):Play()
+            end)
+
+            for _, option in ipairs(opts.Options) do
+                local OptBtn = Instance.new("TextButton", DropBg)
+                OptBtn.Size = UDim2.new(1, -10, 0, 25)
+                OptBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+                OptBtn.Text = option
+                OptBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+                OptBtn.Font = Enum.Font.Gotham
+                OptBtn.TextSize = 12
+                Instance.new("UICorner", OptBtn).CornerRadius = UDim.new(0, 4)
+
+                OptBtn.MouseButton1Click:Connect(function()
+                    DropBtn.Text = "   " .. (opts.Name or "Dropdown") .. " : " .. option
+                    expanded = false
+                    TweenService:Create(DropBg, TweenInfo.new(0.2), {Size = UDim2.new(1, -10, 0, 36)}):Play()
+                    ConfigData[opts.Name] = option
+                    SaveConfig()
+                    if opts.Callback then opts.Callback(option) end
+                end)
+            end
+            if opts.Callback then opts.Callback(default) end
+        end
+
+        -- [RESTORED]: KEYBINDS
+        function Elements:AddKeybind(opts)
+            local currentKey = opts.Default or Enum.KeyCode.E
+            local binding = false
+
+            local BindBtn = Instance.new("TextButton", TabContent)
+            BindBtn.Size = UDim2.new(1, -10, 0, 36)
+            BindBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            BindBtn.Text = "   " .. (opts.Name or "Keybind")
+            BindBtn.TextColor3 = Color3.fromRGB(220, 220, 220)
+            BindBtn.Font = Enum.Font.GothamSemibold
+            BindBtn.TextSize = 13
+            BindBtn.TextXAlignment = Enum.TextXAlignment.Left
+            BindBtn.AutoButtonColor = false
+            Instance.new("UICorner", BindBtn).CornerRadius = UDim.new(0, 6)
+            Instance.new("UIStroke", BindBtn).Color = Color3.fromRGB(45, 45, 45)
+
+            local KeyLabel = Instance.new("TextLabel", BindBtn)
+            KeyLabel.Size = UDim2.new(0, 60, 0, 22)
+            KeyLabel.Position = UDim2.new(1, -70, 0.5, -11)
+            KeyLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            KeyLabel.Text = currentKey.Name
+            KeyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            KeyLabel.Font = Enum.Font.GothamBold
+            KeyLabel.TextSize = 12
+            Instance.new("UICorner", KeyLabel).CornerRadius = UDim.new(0, 4)
+
+            BindBtn.MouseButton1Click:Connect(function()
+                binding = true
+                KeyLabel.Text = "..."
+                TweenService:Create(KeyLabel, TweenInfo.new(0.2), {BackgroundColor3 = ThemeColor}):Play()
+            end)
+
+            UserInputService.InputBegan:Connect(function(input)
+                if binding and input.UserInputType == Enum.UserInputType.Keyboard then
+                    currentKey = input.KeyCode
+                    KeyLabel.Text = currentKey.Name
+                    TweenService:Create(KeyLabel, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 40)}):Play()
+                    binding = false
+                elseif not binding and input.KeyCode == currentKey then
+                    if opts.Callback then opts.Callback(currentKey) end
+                end
+            end)
+            
+            table.insert(ThemeUpdateFunctions, function()
+                if binding then TweenService:Create(KeyLabel, TweenInfo.new(0.3), {BackgroundColor3 = ThemeColor}):Play() end
+            end)
+        end
+
         function Elements:AddColorPicker(opts)
             local DefaultColor = opts.Default or Color3.fromRGB(255, 255, 255)
             local CurrentColor = DefaultColor
@@ -409,17 +665,15 @@ function Nova:MakeWindow(options)
             Instance.new("UICorner", ColorDisplay).CornerRadius = UDim.new(0, 4)
 
             local Expanded = false
-            -- Color Picker Content Area
             local ContentArea = Instance.new("Frame", CPBg)
             ContentArea.Size = UDim2.new(1, 0, 0, 160)
             ContentArea.Position = UDim2.new(0, 0, 0, 36)
             ContentArea.BackgroundTransparency = 1
 
-            -- Color Wheel (Hue & Saturation)
             local ColorWheel = Instance.new("ImageLabel", ContentArea)
             ColorWheel.Size = UDim2.new(0, 100, 0, 100)
             ColorWheel.Position = UDim2.new(0, 15, 0, 10)
-            ColorWheel.Image = "rbxassetid://6020299385" -- Circle Spectrum
+            ColorWheel.Image = "rbxassetid://6020299385" 
             ColorWheel.BackgroundTransparency = 1
 
             local Selector = Instance.new("Frame", ColorWheel)
@@ -430,7 +684,6 @@ function Nova:MakeWindow(options)
             Instance.new("UICorner", Selector).CornerRadius = UDim.new(1, 0)
             Instance.new("UIStroke", Selector).Color = Color3.fromRGB(0, 0, 0)
 
-            -- Darkness Slider
             local DarknessBg = Instance.new("Frame", ContentArea)
             DarknessBg.Size = UDim2.new(0, 15, 0, 100)
             DarknessBg.Position = UDim2.new(0, 125, 0, 10)
@@ -440,12 +693,6 @@ function Nova:MakeWindow(options)
             UIGradient.Rotation = 90
             UIGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(0,0,0))}
 
-            local DarkSelector = Instance.new("Frame", DarknessBg)
-            DarkSelector.Size = UDim2.new(1, 4, 0, 4)
-            DarkSelector.Position = UDim2.new(0, -2, 0, -2)
-            DarkSelector.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-
-            -- HEX & RGB Inputs
             local HexBox = Instance.new("TextBox", ContentArea)
             HexBox.Size = UDim2.new(0, 100, 0, 25)
             HexBox.Position = UDim2.new(0, 160, 0, 10)
@@ -470,7 +717,6 @@ function Nova:MakeWindow(options)
                 if opts.Callback then opts.Callback(CurrentColor) end
             end
 
-            -- Circle Math
             local draggingWheel = false
             ColorWheel.InputBegan:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingWheel = true end end)
             UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingWheel = false end end)
@@ -481,13 +727,11 @@ function Nova:MakeWindow(options)
                     local mouse = input.Position
                     local dist = (Vector2.new(mouse.X, mouse.Y) - center).Magnitude
                     local maxDist = ColorWheel.AbsoluteSize.X / 2
-                    
                     local angle = math.deg(math.atan2(mouse.Y - center.Y, mouse.X - center.X)) + 90
                     if angle < 0 then angle = angle + 360 end
                     h = angle / 360
                     s = math.clamp(dist / maxDist, 0, 1)
 
-                    -- Move selector
                     local selX = math.cos(math.rad(angle - 90)) * (s * maxDist)
                     local selY = math.sin(math.rad(angle - 90)) * (s * maxDist)
                     Selector.Position = UDim2.new(0.5, selX, 0.5, selY)
@@ -495,7 +739,6 @@ function Nova:MakeWindow(options)
                 end
             end)
 
-            -- Hex Input logic
             HexBox.FocusLost:Connect(function()
                 pcall(function()
                     local newCol = Color3.fromHex(HexBox.Text)
@@ -508,8 +751,13 @@ function Nova:MakeWindow(options)
         return Elements
     end
 
+    --[FIXED]: Settings Gear Hookup
     SettingsBtn.MouseButton1Click:Connect(function()
-        if SettingsTabAction then SettingsTabAction() end
+        if SettingsTabAction then
+            SettingsTabAction()
+        else
+            Nova:MakeNotification({Name = "Settings", Content = "The Settings tab is currently disabled.", Time = 3})
+        end
     end)
 
     if options.ShowSettings then
